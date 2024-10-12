@@ -225,7 +225,7 @@ internal sealed partial class UserService(
 
     public async Task<string> AssignRolesAsync(string userId, AssignUserRoleCommand request, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request, nameof(request));
+        ArgumentNullException.ThrowIfNull(request);
 
         var user = await userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync(cancellationToken);
 
@@ -233,7 +233,7 @@ internal sealed partial class UserService(
 
         // Check if the user is an admin for which the admin role is getting disabled
         if (await userManager.IsInRoleAsync(user, FshRoles.Admin)
-            && request.UserRoles.Any(a => !a.Enabled && a.RoleName == FshRoles.Admin))
+            && request.UserRoles.Exists(a => !a.Enabled && a.RoleName == FshRoles.Admin))
         {
             // Get count of users in Admin Role
             int adminCount = (await userManager.GetUsersInRoleAsync(FshRoles.Admin)).Count;

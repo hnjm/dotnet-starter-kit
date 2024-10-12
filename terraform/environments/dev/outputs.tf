@@ -1,4 +1,7 @@
-output "api_url" {
-  value       = "http://${aws_lb.fsh_api_alb.dns_name}/swagger"
-  description = "FSH .NET WebAPI URL"
+output "webapi" {
+  value = "http://${module.webapi.endpoint}:8080"
+}
+
+output "blazor" {
+  value = "http://${module.blazor.endpoint}"
 }

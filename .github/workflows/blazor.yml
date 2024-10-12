@@ -1,15 +1,21 @@
-name: blazor
+name: Blazor
 
 on:
   workflow_dispatch:
 
   push:
-    branches: ["main"]
-    paths: ["src/apps/blazor/**"]
+    branches:
+      - main
+    paths:
+      - "src/apps/blazor/**"
+      - "src/Directory.Packages.props"
 
   pull_request:
-    branches: ["main"]
-    paths: ["src/apps/blazor/**"]
+    branches:
+      - main
+    paths:
+      - "src/apps/blazor/**"
+      - "src/Directory.Packages.props"
 
 jobs:
   build:
@@ -19,7 +25,7 @@ jobs:
       - name: setup dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 8.0.108
       - name: restore dependencies
         run: dotnet restore ./src/apps/blazor/client/Client.csproj
       - name: build
@@ -29,7 +35,7 @@ jobs:
 
   publish:
     needs: build
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: checkout

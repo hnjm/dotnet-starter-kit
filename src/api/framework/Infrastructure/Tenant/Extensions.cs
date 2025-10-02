@@ -27,22 +27,31 @@ internal static class Extensions
             {
                 // to save database calls to resolve tenant
                 // this was happening for every request earlier, leading to ineffeciency
-                config.Events.OnTenantResolved = async (context) =>
+                config.Events.OnTenantResolveCompleted = async (context) =>
                 {
-                    if (context.StoreType != typeof(DistributedCacheStore<FshTenantInfo>))
+                    if (context.MultiTenantContext.StoreInfo is null) return;
+                    if (context.MultiTenantContext.StoreInfo.StoreType != typeof(DistributedCacheStore<FshTenantInfo>))
                     {
                         var sp = ((HttpContext)context.Context!).RequestServices;
                         var distributedCacheStore = sp
                             .GetService<IEnumerable<IMultiTenantStore<FshTenantInfo>>>()!
                             .FirstOrDefault(s => s.GetType() == typeof(DistributedCacheStore<FshTenantInfo>));
 
-                        await distributedCacheStore!.TryAddAsync((FshTenantInfo)context.TenantInfo!);
+                        await distributedCacheStore!.TryAddAsync(context.MultiTenantContext.TenantInfo!);
                     }
                     await Task.FromResult(0);
                 };
             })
             .WithClaimStrategy(FshClaims.Tenant)
             .WithHeaderStrategy(TenantConstants.Identifier)
+            .WithDelegateStrategy(async context =>
+            {
+                if (context is not HttpContext httpContext)
+                    return null;
+                if (!httpContext.Request.Query.TryGetValue("tenant", out var tenantIdentifier) || string.IsNullOrEmpty(tenantIdentifier))
+                    return null;
+                return await Task.FromResult(tenantIdentifier.ToString());
+            })
             .WithDistributedCacheStore(TimeSpan.FromMinutes(60))
             .WithEFCoreStore<TenantDbContext, FshTenantInfo>();
         services.AddScoped<ITenantService, TenantService>();

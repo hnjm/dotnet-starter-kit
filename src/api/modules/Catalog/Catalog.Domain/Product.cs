@@ -5,45 +5,64 @@ using FSH.Starter.WebApi.Catalog.Domain.Events;
 namespace FSH.Starter.WebApi.Catalog.Domain;
 public class Product : AuditableEntity, IAggregateRoot
 {
-    public string Name { get; private set; } = default!;
+    public string Name { get; private set; } = string.Empty;
     public string? Description { get; private set; }
     public decimal Price { get; private set; }
+    public Guid? BrandId { get; private set; }
+    public virtual Brand Brand { get; private set; } = default!;
 
-    public static Product Create(string name, string? description, decimal price)
+    private Product() { }
+
+    private Product(Guid id, string name, string? description, decimal price, Guid? brandId)
     {
-        var product = new Product();
+        Id = id;
+        Name = name;
+        Description = description;
+        Price = price;
+        BrandId = brandId;
 
-        product.Name = name;
-        product.Description = description;
-        product.Price = price;
-
-        product.QueueDomainEvent(new ProductCreated() { Product = product });
-
-        return product;
+        QueueDomainEvent(new ProductCreated { Product = this });
     }
 
-    public Product Update(string? name, string? description, decimal? price)
+    public static Product Create(string name, string? description, decimal price, Guid? brandId)
     {
-        if (name is not null && Name?.Equals(name, StringComparison.OrdinalIgnoreCase) is not true) Name = name;
-        if (description is not null && Description?.Equals(description, StringComparison.OrdinalIgnoreCase) is not true) Description = description;
-        if (price.HasValue && Price != price) Price = price.Value;
+        return new Product(Guid.NewGuid(), name, description, price, brandId);
+    }
 
-        this.QueueDomainEvent(new ProductUpdated() { Product = this });
+    public Product Update(string? name, string? description, decimal? price, Guid? brandId)
+    {
+        bool isUpdated = false;
+
+        if (!string.IsNullOrWhiteSpace(name) && !string.Equals(Name, name, StringComparison.OrdinalIgnoreCase))
+        {
+            Name = name;
+            isUpdated = true;
+        }
+
+        if (!string.Equals(Description, description, StringComparison.OrdinalIgnoreCase))
+        {
+            Description = description;
+            isUpdated = true;
+        }
+
+        if (price.HasValue && Price != price.Value)
+        {
+            Price = price.Value;
+            isUpdated = true;
+        }
+
+        if (brandId.HasValue && brandId.Value != Guid.Empty && BrandId != brandId.Value)
+        {
+            BrandId = brandId.Value;
+            isUpdated = true;
+        }
+
+        if (isUpdated)
+        {
+            QueueDomainEvent(new ProductUpdated { Product = this });
+        }
+
         return this;
     }
-
-    public static Product Update(Guid id, string name, string? description, decimal price)
-    {
-        var product = new Product
-        {
-            Id = id,
-            Name = name,
-            Description = description,
-            Price = price
-        };
-
-        product.QueueDomainEvent(new ProductUpdated() { Product = product });
-
-        return product;
-    }
 }
+

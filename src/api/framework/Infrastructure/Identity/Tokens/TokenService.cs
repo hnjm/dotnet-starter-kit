@@ -50,6 +50,11 @@ public sealed class TokenService : ITokenService
             throw new UnauthorizedException("user is deactivated");
         }
 
+        if (!user.EmailConfirmed)
+        {
+            throw new UnauthorizedException("email not confirmed");
+        }
+
         if (currentTenant.Id != TenantConstants.Root.Id)
         {
             if (!currentTenant.IsActive)
@@ -134,9 +139,10 @@ public sealed class TokenService : ITokenService
         new List<Claim>
         {
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Sub, user.Id),
-            new(JwtRegisteredClaimNames.Email, user.Email!),
-            new(JwtRegisteredClaimNames.Name, user.FirstName ?? string.Empty),
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(ClaimTypes.Email, user.Email!),
+            new(ClaimTypes.Name, user.FirstName ?? string.Empty),
+            new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
             new(FshClaims.Fullname, $"{user.FirstName} {user.LastName}"),
             new(ClaimTypes.Surname, user.LastName ?? string.Empty),
             new(FshClaims.IpAddress, ipAddress),

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>FSH.Modules.Billing</RootNamespace>
+		<AssemblyName>FSH.Modules.Billing</AssemblyName>
+		<NoWarn>$(NoWarn);CA1031;CA1711;CA1812;CA1859;S3267</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Billing.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\BuildingBlocks\Eventing\Eventing.csproj" />
+	  <ProjectReference Include="..\..\..\BuildingBlocks\Jobs\Jobs.csproj" />
+	  <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
+	  <ProjectReference Include="..\..\..\BuildingBlocks\Quota\Quota.csproj" />
+	  <ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
+	  <ProjectReference Include="..\Modules.Billing.Contracts\Modules.Billing.Contracts.csproj" />
+	  <ProjectReference Include="..\..\Multitenancy\Modules.Multitenancy.Contracts\Modules.Multitenancy.Contracts.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="QuestPDF" />
+	</ItemGroup>
+
+</Project>
